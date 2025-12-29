@@ -1,9 +1,9 @@
 import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 import { SYSTEM_INSTRUCTION } from '../constants';
 
-// Initialize Gemini Client
-// The API key must be obtained exclusively from the environment variable process.env.API_KEY
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// NOTE: We do NOT initialize the AI client globally to prevent the application from crashing
+// on startup if the API key is missing (e.g., during development or if build fails to inject it).
+// The client will be initialized when the first message is sent.
 
 let chatSession: Chat | null = null;
 
@@ -17,6 +17,10 @@ export const sendMessageToGemini = async (message: string): Promise<AsyncGenerat
   }
 
   try {
+    // Initialize the client here (Lazy Initialization)
+    // This uses the key injected by Vite at build time.
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
     // Initialize chat session if it doesn't exist
     if (!chatSession) {
       chatSession = ai.chats.create({
